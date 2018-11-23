@@ -4,7 +4,6 @@ A service that monitors calendar events
 
 ## Docs
 
-[Features](docs/features.md)
 [Development](docs/development.md)
 
 ## References

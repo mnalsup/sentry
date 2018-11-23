@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"mnalsup/sentry/core"
 	"net/http"
 	"os"
 	"time"
@@ -68,6 +69,8 @@ func getCalendarServiceFromFile() *calendar.Service {
 Monitor starts the monitor of calendar events
 */
 func Monitor() {
+	wakeUpMatchers := []string{"Wake Up"}
+	sentryEvent := core.EventMustCompile("wake up", wakeUpMatchers)
 	srv := getCalendarServiceFromFile()
 	for {
 		t := time.Now().Format(time.RFC3339)
@@ -83,11 +86,18 @@ func Monitor() {
 				fmt.Println("No upcoming events found.")
 			} else {
 				for _, item := range events.Items {
-					date := item.Start.DateTime
-					if date == "" {
-						date = item.Start.Date
+					/* start filter */
+					for _, matcher := range sentryEvent.EventMatchers {
+						found := matcher.FindString(item.Summary)
+						if found != "" {
+							date := item.Start.DateTime
+							if date == "" {
+								date = item.Start.Date
+							}
+							fmt.Printf("%v (%v)\n", item.Summary, date)
+						}
 					}
-					fmt.Printf("%v (%v)\n", item.Summary, date)
+					/* end filter */
 				}
 			}
 		}

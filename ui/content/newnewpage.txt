@@ -1,0 +1,3 @@
+<h1>New New Page</h1>
+
+<a href="http://localhost:8080/view/newpage">new page</a>

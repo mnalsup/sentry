@@ -4,11 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"mnalsup/sentry/calendarmonitor"
-	"mnalsup/sentry/ui"
 	"net/http"
 	"os"
 
+	"github.com/mnalsup/sentry/core/config"
+	"github.com/mnalsup/sentry/monitoring"
+	"github.com/mnalsup/sentry/ui"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
 )
@@ -18,7 +19,7 @@ func getClient(config *oauth2.Config) *http.Client {
 	// The file token.json stores the user's access and refresh tokens, and is
 	// created automatically when the authorization flow completes for the first
 	// time.
-	tokFile := "token.json"
+	tokFile := "/etc/sentry/token.json"
 	tok, err := tokenFromFile(tokFile)
 	if err != nil {
 		tok = getTokenFromWeb(config)
@@ -106,6 +107,7 @@ func main() {
 			}
 		}
 	*/
-	go calendarmonitor.Monitor()
+	config := config.New()
+	go monitoring.Monitor(config)
 	ui.ServeUI()
 }

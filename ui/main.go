@@ -1,3 +1,6 @@
+/*
+All the code that is unrelated to OAuth2.0 is not really useful in this project.
+*/
 package ui
 
 import (

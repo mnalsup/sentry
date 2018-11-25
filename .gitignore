@@ -5,6 +5,8 @@ credentials.json
 
 token.json
 
+sentry
+
 # Binaries for programs and plugins
 *.exe
 *.exe~

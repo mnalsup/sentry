@@ -7,9 +7,54 @@ import (
 	"github.com/spf13/viper"
 )
 
+/*
+config:
+  googlecalendar:
+    enabled: true
+    sources:
+      - name: alsupmn-cal-primary
+        calendarId: primary
+        token: /etc/sentry/token.json
+        credentials: /etc/sentry/credentials.json
+  philipshue:
+    enabled: true
+    sources:
+      - name: hue-home
+        apiUri: http://192.168.0.109/api
+        user: uTzr9S5IYlzCv5BCs0j7l65Gyi0YO4GiURRmYACP
+*/
+
 // Configuration is the top level config
 type Configuration struct {
-	Events []EventConfig
+	GoogleCalendar GoogleCalendarConfig
+	PhilipsHue     PhilipsHueConfig
+}
+
+// PhilipsHueConfig has the enabled flag and connections
+type PhilipsHueConfig struct {
+	Enabled bool
+	Sources []PhilipsHueConnection
+}
+
+// PhilipsHueConnection contains connection information for a philips hue hub
+type PhilipsHueConnection struct {
+	Name   string
+	APIURI string
+	User   string
+}
+
+// GoogleCalendarConfig contains enabled flag and connections
+type GoogleCalendarConfig struct {
+	Enabled bool
+	Sources []GoogleCalendarConnection
+}
+
+// GoogleCalendarConnection contains information for connection
+type GoogleCalendarConnection struct {
+	Name            string
+	CalendarID      string
+	TokenFile       string
+	CredentialsFile string
 }
 
 // EventConfig represents a configuration for an event
@@ -39,6 +84,5 @@ func New() *Configuration {
 	if err != nil {
 		panic(fmt.Errorf("fatal error config file: %s", err))
 	}
-	fmt.Println(fmt.Sprintf("%s", Config.Events[0].Name))
 	return &Config
 }

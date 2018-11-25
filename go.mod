@@ -5,6 +5,7 @@ require (
 	github.com/cosiner/argv v0.0.0-20181111161405-36fdb9e0bb2d // indirect
 	github.com/derekparker/delve v1.1.0 // indirect
 	github.com/fsnotify/fsnotify v1.4.7
+	github.com/jpillora/backoff v0.0.0-20180909062703-3050d21c67d7
 	github.com/mattn/go-isatty v0.0.4 // indirect
 	github.com/peterh/liner v1.1.0 // indirect
 	github.com/sirupsen/logrus v1.2.0 // indirect

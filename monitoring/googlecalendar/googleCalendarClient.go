@@ -87,6 +87,7 @@ func New(conf *config.GoogleCalendarConnection) *Client {
 // GetOnGoingEvents gets events that are on going
 func (client *Client) GetOnGoingEvents() ([]*calendar.Event, error) {
 	timeMax := time.Now().Add(12 * time.Hour).Format(time.RFC3339)
+	// Covers a 25 hour period for all day events. Will miss multiday events
 	timeMin := time.Now().Add(-(13 * time.Hour)).Format(time.RFC3339)
 	log.Printf("TimeMin all events ending before: %s", timeMin)
 	log.Printf("TimeMax all events starting after: %s", timeMax)

@@ -6,7 +6,6 @@ import (
 	"regexp"
 
 	"github.com/mnalsup/sentry/monitoring"
-	"github.com/mnalsup/sentry/core"
 )
 
 // INIT is the state before actions begin or triggerQ
@@ -37,6 +36,16 @@ type Action struct {
 	action     string
 }
 
+type taskJSON struct {
+	Triggers []triggerJSON
+	Actions  []Action
+}
+
+type triggerJSON struct {
+	Source        string
+	EventMatchers []string
+}
+
 // MustCompile creates an Event and panics if the expression does not compile
 func triggerMustCompile(source string, exprs []string) Trigger {
 	length := len(exprs)
@@ -48,18 +57,23 @@ func triggerMustCompile(source string, exprs []string) Trigger {
 }
 
 // New returns a new Task
-func New(taskJSON []byte) (*Task, error) {
-	var task Task
-	err := json.Unmarshal(taskJSON, &task)
+func NewFromJSON(taskBytes []byte) (*Task, error) {
+	var t taskJSON
+	err := json.Unmarshal(taskBytes, &t)
 	if err != nil {
 		log.Println(err)
 		return nil, err
 	}
+	var triggers = make([]Trigger, len(t.Triggers))
+	for i, v := range t.Triggers {
+		triggers[i] = triggerMustCompile(v.Source, v.EventMatchers)
+	}
+	var task = Task{triggers, t.Actions, INIT}
 	return &task, nil
 }
 
-// TestTrigger receives and event and decides whether it matches a trigger
-func (task *Task) TestTrigger(event *monitoring.Event) bool {
+// MatchEvent receives and event and decides whether it matches a trigger
+func (task *Task) MatchEvent(event *monitoring.Event) bool {
 	for _, trigger := range task.Triggers {
 		if trigger.Source == event.Source {
 			for _, matcher := range trigger.EventMatchers {

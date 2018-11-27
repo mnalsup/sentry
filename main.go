@@ -6,7 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
-
+	"github.com/mnalsup/sentry/core/task"
 	"github.com/mnalsup/sentry/core/config"
 	"github.com/mnalsup/sentry/monitoring"
 	"github.com/mnalsup/sentry/ui"
@@ -108,6 +108,10 @@ func main() {
 		}
 	*/
 	config := config.New()
+	_, err := task.LoadTasksFromFile("/etc/sentry/tasks/wakeup.json")
+	if err != nil {
+		log.Fatalln(err)
+	}
 	go monitoring.Monitor(config)
 	ui.ServeUI()
 }

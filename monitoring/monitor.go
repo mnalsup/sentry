@@ -18,8 +18,9 @@ type Event struct {
 /*
 Monitor starts the monitor of calendar events
 */
-func Monitor(conf *config.Configuration) {
+func Monitor(conf *config.Configuration, c chan *Event) {
 	log.Println(conf)
+	// TODO: Generalize for multiple calendars
 	calSvc := googlecalendar.New(&conf.GoogleCalendar.Sources[0])
 	for {
 		events, err := calSvc.GetOnGoingEvents()
@@ -32,10 +33,13 @@ func Monitor(conf *config.Configuration) {
 				fmt.Println("No ongoing events found.")
 			} else {
 				for _, event := range events {
-					fmt.Printf("%v (Start: %v)(End: %v)\n", event.Summary, event.Start, event.End)
+					// fmt.Printf("%v (Start: %v)(End: %v)\n", event.Summary, event.Start, event.End)
+					// TODO: Generalize for multiple calendars
+					c <- &Event{event.Summary, conf.GoogleCalendar.Sources[0].Name}
 				}
 			}
 		}
 		time.Sleep(30 * time.Second)
 	}
+	// close(c)
 }

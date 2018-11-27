@@ -108,10 +108,12 @@ func main() {
 		}
 	*/
 	config := config.New()
-	_, err := task.LoadTasksFromFile("/etc/sentry/tasks/wakeup.json")
+	tasks, err := task.LoadTasksFromFile("/etc/sentry/tasks/wakeup.json")
 	if err != nil {
 		log.Fatalln(err)
 	}
-	go monitoring.Monitor(config)
+	events := make(chan *monitoring.Event)
+	go monitoring.Monitor(config, events)
+	go task.Subscribe(tasks, events)
 	ui.ServeUI()
 }

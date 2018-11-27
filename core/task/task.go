@@ -74,9 +74,11 @@ func NewFromJSON(taskBytes []byte) (*Task, error) {
 
 // MatchEvent receives and event and decides whether it matches a trigger
 func (task *Task) MatchEvent(event *monitoring.Event) bool {
+	log.Printf("Matching on event: %s %s.\n", event.Name, event.Source)
 	for _, trigger := range task.Triggers {
 		if trigger.Source == event.Source {
 			for _, matcher := range trigger.EventMatchers {
+				log.Printf("To: %s\n", matcher.String())
 				if matcher.MatchString(event.Name) {
 					return true
 				}
@@ -84,4 +86,11 @@ func (task *Task) MatchEvent(event *monitoring.Event) bool {
 		}
 	}
 	return false
+}
+
+// HandleEvent handles an event
+func (task *Task) HandleEvent(event *monitoring.Event) {
+	if task.MatchEvent(event) {
+		log.Println(event)
+	}
 }

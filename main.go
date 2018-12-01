@@ -3,9 +3,9 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
+	log "github.com/sirupsen/logrus"
 	"github.com/mnalsup/sentry/core/task"
 	"github.com/mnalsup/sentry/core/config"
 	"github.com/mnalsup/sentry/monitoring"
@@ -108,9 +108,12 @@ func main() {
 		}
 	*/
 	config := config.New()
-	tasks, err := task.LoadTasksFromFile("/etc/sentry/tasks/wakeup.json")
-	if err != nil {
-		log.Fatalln(err)
+	tasks, err := task.LoadTasksFromFile(config, "/etc/sentry/tasks/wakeup.json")
+	if err != nil {        // Handle errors reading the config file
+		log.WithFields(log.Fields{
+			"file":     "main.go",
+			"function": "main",
+		}).Fatalln(err)
 	}
 	events := make(chan *monitoring.Event)
 	go monitoring.Monitor(config, events)

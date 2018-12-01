@@ -2,8 +2,9 @@ package config
 
 import (
 	"fmt"
+	"os"
 
-	"github.com/fsnotify/fsnotify"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
 
@@ -67,22 +68,30 @@ type EventConfig struct {
 
 // New creates the config
 func New() *Configuration {
+	// Log configuration
+	log.SetFormatter(&log.JSONFormatter{})
+	log.SetOutput(os.Stdout)
+	log.SetLevel(log.TraceLevel)
+
+	// build config
 	var Config Configuration
 	fmt.Println("Initializing Configs...")
 	viper.SetConfigName("config")
 	viper.AddConfigPath("/etc/sentry")
 	viper.SetConfigType("yaml")
-	viper.WatchConfig()
-	viper.OnConfigChange(func(e fsnotify.Event) {
-		fmt.Println("Config file changed:", e.Name)
-	})
 	err := viper.ReadInConfig() // Find and read the config file
 	if err != nil {             // Handle errors reading the config file
-		panic(fmt.Errorf("fatal error config file: %s", err))
+		log.WithFields(log.Fields{
+			"file":     "config.go",
+			"function": "New",
+		}).Fatalf("fatal error config file: %s", err)
 	}
 	err = viper.Unmarshal(&Config)
-	if err != nil {
-		panic(fmt.Errorf("fatal error config file: %s", err))
+	if err != nil { // Handle errors reading the config file
+		log.WithFields(log.Fields{
+			"file":     "config.go",
+			"function": "New",
+		}).Fatalf("fatal error config file: %s", err)
 	}
 	return &Config
 }

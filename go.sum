@@ -1,5 +1,7 @@
 cloud.google.com/go v0.33.1 h1:fmJQWZ1w9PGkHR1YL/P7HloDvqlmKQ4Vpb7PC2e+aCk=
 cloud.google.com/go v0.33.1/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
+github.com/amimof/huego v0.0.0-20181128075458-613c1fc066b0 h1:j34gJ2l5KNmyw1aNQqKmre1+M7k0oTNTwnfiMA7WIIk=
+github.com/amimof/huego v0.0.0-20181128075458-613c1fc066b0/go.mod h1:OD3KUvjnezSdkk8JpeAUbFvOe/OalzQU0y66dQnkTWk=
 github.com/cosiner/argv v0.0.0-20181111161405-36fdb9e0bb2d h1:8x/nCVflb3lA5f+PTizN0DcF+Lt34s1dFC00Zi932rs=
 github.com/cosiner/argv v0.0.0-20181111161405-36fdb9e0bb2d/go.mod h1:p/NrK5tF6ICIly4qwEDsf6VDirFiWWz0FenfYBwJaKQ=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=

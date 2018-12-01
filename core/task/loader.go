@@ -2,12 +2,14 @@ package task
 
 import (
 	"io/ioutil"
-	"log"
+
+	"github.com/mnalsup/sentry/core/config"
+	log "github.com/sirupsen/logrus"
 )
 
 // LoadTasksFromFile reads the /etc/sentry/tasks directory
-func LoadTasksFromFile(directory string) ([]*Task, error) {
-	log.Println("Reading in tasks from /etc/sentry/tasks...")
+func LoadTasksFromFile(conf *config.Configuration, directory string) ([]*Task, error) {
+	log.Debugln("Reading in tasks from /etc/sentry/tasks...")
 	// TODO: use ReadDir and get some number of files
 	dir, err := ioutil.ReadDir("/etc/sentry/tasks")
 	if err != nil {
@@ -20,7 +22,10 @@ func LoadTasksFromFile(directory string) ([]*Task, error) {
 		if err != nil {
 			return nil, err
 		}
-		t, err := NewFromJSON(dat)
+		t, err := NewFromJSON(conf, dat)
+		if err != nil {
+			log.Fatalln(err)
+		}
 		tasks[i] = t
 		log.Println(t)
 	}

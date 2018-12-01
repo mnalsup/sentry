@@ -2,13 +2,14 @@ module github.com/mnalsup/sentry
 
 require (
 	cloud.google.com/go v0.33.1 // indirect
+	github.com/amimof/huego v0.0.0-20181128075458-613c1fc066b0
 	github.com/cosiner/argv v0.0.0-20181111161405-36fdb9e0bb2d // indirect
 	github.com/derekparker/delve v1.1.0 // indirect
 	github.com/fsnotify/fsnotify v1.4.7
 	github.com/jpillora/backoff v0.0.0-20180909062703-3050d21c67d7
 	github.com/mattn/go-isatty v0.0.4 // indirect
 	github.com/peterh/liner v1.1.0 // indirect
-	github.com/sirupsen/logrus v1.2.0 // indirect
+	github.com/sirupsen/logrus v1.2.0
 	github.com/spf13/cobra v0.0.3 // indirect
 	github.com/spf13/pflag v1.0.3 // indirect
 	github.com/spf13/viper v1.2.1

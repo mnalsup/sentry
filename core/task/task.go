@@ -2,10 +2,12 @@ package task
 
 import (
 	"encoding/json"
-	"log"
 	"regexp"
 
+	"github.com/mnalsup/sentry/core/config"
+	"github.com/mnalsup/sentry/core/task/action"
 	"github.com/mnalsup/sentry/monitoring"
+	log "github.com/sirupsen/logrus"
 )
 
 // INIT is the state before actions begin or triggerQ
@@ -20,7 +22,7 @@ const (
 // Task is a set of triggers and actions and state information
 type Task struct {
 	Triggers []Trigger
-	Actions  []Action
+	Actions  []action.Action
 	Status   int
 }
 
@@ -30,18 +32,12 @@ type Trigger struct {
 	EventMatchers []*regexp.Regexp
 }
 
-// Action is a definition of an action to take
-type Action struct {
-	sourceName string
-	action     string
+type jsonTask struct {
+	Triggers []jsonTrigger
+	Actions  []action.InitialAction
 }
 
-type taskJSON struct {
-	Triggers []triggerJSON
-	Actions  []Action
-}
-
-type triggerJSON struct {
+type jsonTrigger struct {
 	Source        string
 	EventMatchers []string
 }
@@ -56,9 +52,10 @@ func triggerMustCompile(source string, exprs []string) Trigger {
 	return Trigger{source, matchers}
 }
 
-// New returns a new Task
-func NewFromJSON(taskBytes []byte) (*Task, error) {
-	var t taskJSON
+// NewFromJSON returns a new Task from a json byte array
+func NewFromJSON(conf *config.Configuration, taskBytes []byte) (*Task, error) {
+	log.Tracef("New task from JSON: %s\n", string(taskBytes))
+	var t jsonTask
 	err := json.Unmarshal(taskBytes, &t)
 	if err != nil {
 		log.Println(err)
@@ -68,13 +65,22 @@ func NewFromJSON(taskBytes []byte) (*Task, error) {
 	for i, v := range t.Triggers {
 		triggers[i] = triggerMustCompile(v.Source, v.EventMatchers)
 	}
-	var task = Task{triggers, t.Actions, INIT}
+	var actions = make([]action.Action, len(t.Actions))
+	for i, ia := range t.Actions {
+		a, err := ia.Transform(conf)
+		if err != nil {
+			return nil, err
+		}
+		actions[i] = a
+	}
+	var task = Task{triggers, actions, INIT}
 	return &task, nil
 }
 
 // MatchEvent receives and event and decides whether it matches a trigger
 func (task *Task) MatchEvent(event *monitoring.Event) bool {
-	log.Printf("Matching on event: %s %s.\n", event.Name, event.Source)
+	log.Tracef("Matching on event: %s %s.\n", event.Name, event.Source)
+	log.Traceln(task.Triggers)
 	for _, trigger := range task.Triggers {
 		if trigger.Source == event.Source {
 			for _, matcher := range trigger.EventMatchers {
@@ -92,5 +98,17 @@ func (task *Task) MatchEvent(event *monitoring.Event) bool {
 func (task *Task) HandleEvent(event *monitoring.Event) {
 	if task.MatchEvent(event) {
 		log.Println(event)
+		for _, a := range task.Actions {
+			if task.Status < ONGOING {
+				task.Status = ONGOING
+				log.Debugf("Task status set to %d", task.Status)
+				a.Exec()
+				task.Status = POST
+				log.Debugf("Task status set to %d", task.Status)
+			}
+		}
+	} else {
+		task.Status = INIT
+		log.Debugf("Task status set to %d", task.Status)
 	}
 }

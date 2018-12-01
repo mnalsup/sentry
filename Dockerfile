@@ -1,4 +1,4 @@
-from golang:1.11.2-stretch
+FROM golang:1.11.2-stretch
 
 WORKDIR /go/src/sentry
 

@@ -74,7 +74,7 @@ func (ph *LightsOn) Exec() error {
 	}
 	for _, light := range lights {
 		fmt.Println(light)
-		err = light.Off()
+		err = light.On()
 		if err != nil {
 			return err
 		}

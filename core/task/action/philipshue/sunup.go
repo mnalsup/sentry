@@ -3,6 +3,7 @@ package philipshue
 import (
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/amimof/huego"
 	"github.com/mnalsup/sentry/core/config"
@@ -10,25 +11,25 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// LightsOnID is the identifier for this action
-const LightsOnID string = "PHILIPS_HUE_LIGHTS_ON"
+// SunUpID is the identifier for this action
+const SunUpID string = "PHILIPS_HUE_SUN_UP"
 
-// LightsOn specifies an action to turn on Philips Hue Lights
-type LightsOn struct {
+// SunUp specifies an action to turn on Philips Hue Lights
+type SunUp struct {
 	ID     string
 	Source string
 	HubURI string
 	User   string
 }
 
-type lightsOnConfig struct {
+type sunUpConfig struct {
 	ID     string
 	Source string
 }
 
-// NewLightsOn returns a *LightsOn
-func NewLightsOn(id string, source string, immediate bool, apiURI string, user string) *LightsOn {
-	return &LightsOn{
+// NewSunUp returns a *SunUp
+func NewSunUp(id string, source string, immediate bool, apiURI string, user string) *SunUp {
+	return &SunUp{
 		ID:     id,
 		Source: source,
 		HubURI: apiURI,
@@ -36,9 +37,9 @@ func NewLightsOn(id string, source string, immediate bool, apiURI string, user s
 	}
 }
 
-// NewLightsOnFromJSON converts json to LightsOn
-func NewLightsOnFromJSON(conf *config.Configuration, dat []byte) (*LightsOn, error) {
-	var loac = lightsOnConfig{}
+// NewSunUpFromJSON converts json to SunUp
+func NewSunUpFromJSON(conf *config.Configuration, dat []byte) (*SunUp, error) {
+	var loac = sunUpConfig{}
 	err := json.Unmarshal(dat, &loac)
 	if err != nil {
 		return nil, err
@@ -54,7 +55,7 @@ func NewLightsOnFromJSON(conf *config.Configuration, dat []byte) (*LightsOn, err
 	if api == "" || user == "" {
 		return nil, fmt.Errorf("no sources configured matched: %s", loac.Source)
 	}
-	return &LightsOn{
+	return &SunUp{
 		ID:     loac.ID,
 		Source: loac.Source,
 		HubURI: api,
@@ -63,21 +64,40 @@ func NewLightsOnFromJSON(conf *config.Configuration, dat []byte) (*LightsOn, err
 }
 
 // Exec fulfills the Action interface, executes the action specified by the action
-func (ph *LightsOn) Exec(event *event.Event) {
+func (ph *SunUp) Exec(event *event.Event) {
 	log.WithFields(log.Fields{
 		"file": "lightson.go",
 		"func": "Exec",
-	}).Tracef("Lights on exec with HubUri:  %s\n", ph.HubURI)
+	}).Tracef("Sun up exec with HubUri:  %s\n", ph.HubURI)
 	bridge := huego.New(ph.HubURI, ph.User)
 	lights, err := bridge.GetLights()
 	if err != nil {
 		return
 	}
 	for _, light := range lights {
-		fmt.Println(light)
+		err = light.Bri(0)
+	}
+	for _, light := range lights {
 		err = light.On()
 		if err != nil {
 			return
+		}
+	}
+	duration := event.Duration.Minutes()
+	log.Tracef("Duration: %f", duration)
+	interval := int(255 / duration)
+	log.Tracef("Interval:  %f to %d", 255/duration, interval)
+	for i := 0; i < int(duration); i++ {
+		for _, light := range lights {
+			log.Debugf("Setting brightness to: %d", uint8(i*interval))
+			err := light.Bri(uint8(i * interval))
+			if err != nil {
+				return
+			}
+		}
+		for i := 0; i < 60; i++ {
+			fmt.Println("still here")
+			time.Sleep(1 * time.Second)
 		}
 	}
 	return

@@ -5,8 +5,8 @@ import (
 	"regexp"
 
 	"github.com/mnalsup/sentry/core/config"
+	"github.com/mnalsup/sentry/core/event"
 	"github.com/mnalsup/sentry/core/task/action"
-	"github.com/mnalsup/sentry/monitoring"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -78,7 +78,7 @@ func NewFromJSON(conf *config.Configuration, taskBytes []byte) (*Task, error) {
 }
 
 // MatchEvent receives and event and decides whether it matches a trigger
-func (task *Task) MatchEvent(event *monitoring.Event) bool {
+func (task *Task) MatchEvent(event *event.Event) bool {
 	log.Tracef("Matching on event: %s %s.\n", event.Name, event.Source)
 	log.Traceln(task.Triggers)
 	for _, trigger := range task.Triggers {
@@ -95,14 +95,14 @@ func (task *Task) MatchEvent(event *monitoring.Event) bool {
 }
 
 // HandleEvent handles an event
-func (task *Task) HandleEvent(event *monitoring.Event) {
+func (task *Task) HandleEvent(event *event.Event) {
 	if task.MatchEvent(event) {
 		log.Println(event)
 		for _, a := range task.Actions {
 			if task.Status < ONGOING {
 				task.Status = ONGOING
 				log.Debugf("Task status set to %d", task.Status)
-				a.Exec()
+				go a.Exec(event)
 				task.Status = POST
 				log.Debugf("Task status set to %d", task.Status)
 			}

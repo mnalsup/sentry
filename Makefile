@@ -12,3 +12,5 @@ install: dependencies
 		go install -v ./...
 docker:
 		docker build -t sentry .
+sentry-linux-arm:
+		GOOS=linux GOARCH=arm GOARM=6 go build .

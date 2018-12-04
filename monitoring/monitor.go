@@ -6,19 +6,14 @@ import (
 	"time"
 
 	"github.com/mnalsup/sentry/core/config"
+	"github.com/mnalsup/sentry/core/event"
 	"github.com/mnalsup/sentry/monitoring/googlecalendar"
 )
-
-// Event is exported to match triggers for tasks
-type Event struct {
-	Name   string
-	Source string
-}
 
 /*
 Monitor starts the monitor of calendar events
 */
-func Monitor(conf *config.Configuration, c chan *Event) {
+func Monitor(conf *config.Configuration, c chan *event.Event) {
 	log.Println(conf)
 	// TODO: Generalize for multiple calendars
 	calSvc := googlecalendar.New(&conf.GoogleCalendar.Sources[0])
@@ -35,7 +30,7 @@ func Monitor(conf *config.Configuration, c chan *Event) {
 				for _, event := range events {
 					// fmt.Printf("%v (Start: %v)(End: %v)\n", event.Summary, event.Start, event.End)
 					// TODO: Generalize for multiple calendars
-					c <- &Event{event.Summary, conf.GoogleCalendar.Sources[0].Name}
+					c <- event
 				}
 			}
 		}

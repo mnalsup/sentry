@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/mnalsup/sentry/core/config"
+	"github.com/mnalsup/sentry/core/event"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/calendar/v3"
@@ -85,7 +86,7 @@ func New(conf *config.GoogleCalendarConnection) *Client {
 }
 
 // GetOnGoingEvents gets events that are on going
-func (client *Client) GetOnGoingEvents() ([]*calendar.Event, error) {
+func (client *Client) GetOnGoingEvents() ([]*event.Event, error) {
 	timeMax := time.Now().Add(12 * time.Hour).Format(time.RFC3339)
 	// Covers a 25 hour period for all day events. Will miss multiday events
 	timeMin := time.Now().Add(-(13 * time.Hour)).Format(time.RFC3339)
@@ -99,18 +100,23 @@ func (client *Client) GetOnGoingEvents() ([]*calendar.Event, error) {
 		client.Service = getCalendarServiceFromFile(client.CredentialsFile, client.TokenFile)
 		return nil, err
 	}
-	var ongoingEvents []*calendar.Event
-	for _, event := range events.Items {
-		start, err := time.Parse(time.RFC3339, event.Start.DateTime)
+	var ongoingEvents []*event.Event
+	for _, e := range events.Items {
+		start, err := time.Parse(time.RFC3339, e.Start.DateTime)
 		if err != nil {
 			log.Fatal(err)
 		}
-		end, err := time.Parse(time.RFC3339, event.End.DateTime)
+		end, err := time.Parse(time.RFC3339, e.End.DateTime)
 		if err != nil {
 			log.Fatal(err)
 		}
 		if time.Until(start) <= 0 && time.Until(end) >= 0 {
-			ongoingEvents = append(ongoingEvents, event)
+			ongoingEvents = append(ongoingEvents,
+				&event.Event{
+					Name:     e.Summary,
+					Source:   client.Name,
+					Duration: (end.Sub(start)),
+				})
 		}
 	}
 	return ongoingEvents, nil

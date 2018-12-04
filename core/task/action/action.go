@@ -5,16 +5,17 @@ import (
 	"fmt"
 
 	"github.com/mnalsup/sentry/core/config"
+	"github.com/mnalsup/sentry/core/event"
 	"github.com/mnalsup/sentry/core/task/action/philipshue"
 	log "github.com/sirupsen/logrus"
 )
 
 // Action is an interface defining an action
 type Action interface {
-	Exec() error
+	Exec(*event.Event)
 }
 
-// Initial Action holds an unspecified action to be transformed
+// InitialAction holds an unspecified action to be transformed
 type InitialAction struct {
 	ID        string
 	JSONBytes []byte
@@ -43,6 +44,12 @@ func (a *InitialAction) Transform(conf *config.Configuration) (Action, error) {
 	switch a.ID {
 	case philipshue.LightsOnID:
 		action, err := philipshue.NewLightsOnFromJSON(conf, a.JSONBytes)
+		if err != nil {
+			return nil, err
+		}
+		return action, nil
+	case philipshue.SunUpID:
+		action, err := philipshue.NewSunUpFromJSON(conf, a.JSONBytes)
 		if err != nil {
 			return nil, err
 		}

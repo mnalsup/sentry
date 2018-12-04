@@ -7,6 +7,7 @@ import (
 	"os"
 	log "github.com/sirupsen/logrus"
 	"github.com/mnalsup/sentry/core/task"
+	"github.com/mnalsup/sentry/core/event"
 	"github.com/mnalsup/sentry/core/config"
 	"github.com/mnalsup/sentry/monitoring"
 	"github.com/mnalsup/sentry/ui"
@@ -70,43 +71,6 @@ func saveToken(path string, token *oauth2.Token) {
 }
 
 func main() {
-	/*
-		b, err := ioutil.ReadFile("credentials.json")
-		if err != nil {
-			log.Fatalf("Unable to read client secret file: %v", err)
-		}
-
-		// If modifying these scopes, delete your previously saved token.json.
-		config, err := google.ConfigFromJSON(b, calendar.CalendarReadonlyScope)
-		if err != nil {
-			log.Fatalf("Unable to parse client secret file to config: %v", err)
-		}
-		client := getClient(config)
-
-		srv, err := calendar.New(client)
-		if err != nil {
-			log.Fatalf("Unable to retrieve Calendar client: %v", err)
-		}
-
-		t := time.Now().Format(time.RFC3339)
-		events, err := srv.Events.List("primary").ShowDeleted(false).
-			SingleEvents(true).TimeMin(t).MaxResults(10).OrderBy("startTime").Do()
-		if err != nil {
-			log.Fatalf("Unable to retrieve next ten of the user's events: %v", err)
-		}
-		fmt.Println("Upcoming events:")
-		if len(events.Items) == 0 {
-			fmt.Println("No upcoming events found.")
-		} else {
-			for _, item := range events.Items {
-				date := item.Start.DateTime
-				if date == "" {
-					date = item.Start.Date
-				}
-				fmt.Printf("%v (%v)\n", item.Summary, date)
-			}
-		}
-	*/
 	config := config.New()
 	tasks, err := task.LoadTasksFromFile(config, "/etc/sentry/tasks/wakeup.json")
 	if err != nil {        // Handle errors reading the config file
@@ -115,7 +79,7 @@ func main() {
 			"function": "main",
 		}).Fatalln(err)
 	}
-	events := make(chan *monitoring.Event)
+	events := make(chan *event.Event)
 	go monitoring.Monitor(config, events)
 	go task.Subscribe(tasks, events)
 	ui.ServeUI()
